@@ -12,7 +12,9 @@
 
   const props = defineProps({
     players: {
-      default: {},
+      default() {
+        return {}
+      },
       type: Object
     },
     matchId: {
@@ -42,7 +44,7 @@
 <template>
   <div class='container'>
     <ul>
-      <li v-for="(player, id) in players">
+      <li v-for="(player, id) in players" :key="id">
         <div class='player-container'>
           <Avatar :player show-is-ready/>
 

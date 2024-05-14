@@ -133,7 +133,8 @@
 
     <div class='avatars'>
       <div
-        v-for="player in players"
+        v-for="(player, id) in players"
+        :key="`avatar-${id}`"
         class='player'
         :class="{ times: player.marker === 0, circle: player.marker === 1 }"
       >
@@ -146,6 +147,7 @@
       <Cell
         v-for="(cell, cellIndex) in cells"
         v-bind="cell"
+        :key="`cell-${cellIndex}`"
         :enabled
         @click="enabled && handleCellClick(cellIndex)"
       />

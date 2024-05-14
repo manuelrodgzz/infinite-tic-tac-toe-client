@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 import { io, Socket as SocketObject } from 'socket.io-client'
 
 class Socket {
