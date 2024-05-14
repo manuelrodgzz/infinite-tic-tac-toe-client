@@ -12,7 +12,7 @@ class Socket {
 
   static connect() {
     if (!Socket.#instance) {
-      Socket.#instance = io('ws://localhost:3001')
+      Socket.#instance = io(import.meta.env.VITE_SERVER_URL)
     }
   }
 
