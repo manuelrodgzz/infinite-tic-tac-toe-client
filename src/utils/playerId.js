@@ -1,9 +1,5 @@
 function get() {
-  const cookie = document.cookie
-  .split(';')
-  .find(
-    cookie => cookie.includes('player-id')
-  )
+  const cookie = document.cookie.split(';').find((cookie) => cookie.includes('player-id'))
 
   return cookie?.split('=')[1] || null
 }

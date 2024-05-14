@@ -9,12 +9,7 @@ function useNotification() {
   /**
    * @param {ToastConfig} config
    */
-  function notify({
-    summary,
-    detail,
-    life = 2_000,
-    severity = 'info'
-  } = {}) {
+  function notify({ summary, detail, life = 2_000, severity = 'info' } = {}) {
     toast.add({
       summary,
       detail,
@@ -24,24 +19,24 @@ function useNotification() {
   }
 
   /**
-   * @param {NotificationConfig} config 
+   * @param {NotificationConfig} config
    */
   function success(config) {
-    notify({...config, severity: 'success'})
+    notify({ ...config, severity: 'success' })
   }
 
   /**
-   * @param {NotificationConfig} config 
+   * @param {NotificationConfig} config
    */
   function error(config) {
-    notify({...config, severity: 'error'})
+    notify({ ...config, severity: 'error' })
   }
 
   /**
-   * @param {NotificationConfig} config 
+   * @param {NotificationConfig} config
    */
   function warn(config) {
-    notify({...config, severity: 'warn'})
+    notify({ ...config, severity: 'warn' })
   }
 
   return {

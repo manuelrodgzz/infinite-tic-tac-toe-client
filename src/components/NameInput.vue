@@ -1,9 +1,9 @@
 <script setup>
-  import InputText from 'primevue/inputtext'
-  import FloatLabel from 'primevue/floatlabel'
+import InputText from 'primevue/inputtext'
+import FloatLabel from 'primevue/floatlabel'
 
-  const model = defineModel({ required: true })
-  const nameMaxLength = 10
+const model = defineModel({ required: true })
+const nameMaxLength = 10
 </script>
 
 <template>
@@ -22,7 +22,7 @@
 </template>
 
 <style scoped>
-  small {
-    display: block;
-  }
+small {
+  display: block;
+}
 </style>

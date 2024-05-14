@@ -26,7 +26,7 @@ const router = createRouter({
       path: '/online/:matchId',
       name: 'online match',
       component: OnlineGame
-    },
+    }
   ]
 })
 

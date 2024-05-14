@@ -2,7 +2,6 @@
 import { io, Socket as SocketObject } from 'socket.io-client'
 
 class Socket {
-
   /** @type {SocketObject} */
   static #instance
 
