@@ -1,0 +1,27 @@
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+#app {
+  font-weight: normal;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.times-background {
+  background: rgb(57, 177, 247);
+}
+
+.times-color {
+  color: rgb(57, 177, 247);
+}
+
+.circle-background {
+  background: rgb(255, 73, 73);
+}
+
+.circle-color {
+  color: rgb(255, 73, 73);
+}
