@@ -13,14 +13,13 @@ import Layout from '@/layout/Index.vue'
 import AbandonWrapper from '@/components/AbandonWrapper.vue'
 
 const router = useRouter()
-const { cells, playsHistory, currentPlayer } = useGameState()
+const { cells, playsHistory, currentPlayer, lastWinnerId, players, currentPlayerMarker } =
+  useGameState()
 const notification = useNotification()
 
-const players = ref({})
 const showWaitingScreen = ref(false)
 const showPlayAgain = ref(false)
 const showOponentAbandoned = ref(true)
-const matchWinner = ref()
 
 const matchId = router.currentRoute.value.params.matchId
 
@@ -41,10 +40,6 @@ const showTicTacToe = computed(() => {
 
 // Check if should show waiting screen
 watch(playersArr, (newValue, oldValue) => {
-  // const isNotTheFirstMatch = newValue.some(player => player.wins)
-  // const allPlayersReady = newValue.every(player => player.isReady)
-  // const somePlayersAreReady = newValue.some(player => player.isReady)
-
   let isNotTheFirstMatch = false
   let allPlayersReady = true
   let somePlayersAreReady = false
@@ -103,13 +98,15 @@ function updateMatchState(updatedMatch) {
   playsHistory.value = updatedMatch.playsHistory
   currentPlayer.value = updatedMatch.currentPlayer
   players.value = updatedMatch.players
+  lastWinnerId.value = updatedMatch.lastWinnerId
 }
 
 function getEmitableGameState() {
   return {
     cells: cells.value,
     playsHistory: playsHistory.value,
-    currentPlayer: currentPlayer.value
+    currentPlayer: currentPlayer.value,
+    lastWinnerId: lastWinnerId.value
   }
 }
 
@@ -118,6 +115,7 @@ function handleStateUpdate() {
 }
 
 function handleWin() {
+  lastWinnerId.value = playerId
   Socket.instance.emit('match:win', matchId, getEmitableGameState(), playerId)
 }
 
@@ -170,8 +168,8 @@ Socket.instance.on('match:update', (updates) => {
   updateMatchState(updates)
 })
 
-Socket.instance.on('match:end', async (updatedMatch, winner) => {
-  matchWinner.value = winner.name
+Socket.instance.on('match:end', async (updatedMatch, winnerId) => {
+  lastWinnerId.value = winnerId
   updateMatchState(updatedMatch)
   showPlayAgain.value = true
 })
@@ -190,11 +188,12 @@ Socket.instance.on('match:exit', () => {
     <AbandonWrapper @abandon="handleAbandon">
       <TicTacToe
         v-if="showTicTacToe"
-        :enabled="currentPlayer === players[playerId].marker"
+        :enabled="currentPlayer === playerId"
         v-model:cells="cells"
         v-model:plays-history="playsHistory"
         v-model:current-player="currentPlayer"
         :players
+        :current-player-marker="currentPlayerMarker"
         @win="handleWin"
       />
       <WaitingForResponse
@@ -205,7 +204,7 @@ Socket.instance.on('match:exit', () => {
 
       <PlayAgainModal
         :visible="showPlayAgain"
-        :winner="matchWinner"
+        :winner="players[lastWinnerId]?.name"
         @yes="handlePlayAgain(true)"
         @no="handlePlayAgain(false)"
       />

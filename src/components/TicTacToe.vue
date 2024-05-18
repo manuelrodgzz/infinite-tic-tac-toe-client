@@ -5,34 +5,6 @@ import gameConfig from 'root/gameConfig.json'
 import Avatar from './Avatar.vue'
 import Tag from 'primevue/tag'
 
-const props = defineProps({
-  enabled: {
-    type: Boolean,
-    default: true
-  },
-  players: {
-    type: Object,
-    required: true
-  }
-})
-
-const currentPlayer = defineModel('currentPlayer', { required: true })
-const playsHistory = defineModel('playsHistory', { required: true })
-const cells = defineModel('cells', { required: true })
-
-const turnTag = computed(() => {
-  const playerInTurn = Object.values(props.players).find(
-    (player) => player.marker === props.currentPlayer
-  )
-
-  if (!playerInTurn) return ''
-
-  const endsWithS = playerInTurn.name[playerInTurn.name.length - 1].toLowerCase() === 's'
-  return `${playerInTurn.name}'${endsWithS ? '' : 's'} turn`
-})
-
-const emit = defineEmits(['win'])
-
 const WINNING_COMBINATIONS = [
   [0, 1, 2],
   [3, 4, 5],
@@ -43,16 +15,47 @@ const WINNING_COMBINATIONS = [
   [0, 4, 8],
   [2, 4, 6]
 ]
-const PLAYER_1 = 0
-const PLAYER_2 = 1
+
+const props = defineProps({
+  enabled: {
+    type: Boolean,
+    default: true
+  },
+  players: {
+    type: Object,
+    required: true
+  },
+  currentPlayerMarker: Number
+})
+
+const currentPlayer = defineModel('currentPlayer', { required: true })
+const playsHistory = defineModel('playsHistory', { required: true })
+const cells = defineModel('cells', { required: true })
+
+const turnTag = computed(() => {
+  const playerInTurn = Object.values(props.players).find(
+    (player) => player.marker === props.players[currentPlayer.value]?.marker
+  )
+
+  if (!playerInTurn) return ''
+
+  const endsWithS = playerInTurn.name[playerInTurn.name.length - 1].toLowerCase() === 's'
+  return `${playerInTurn.name}'${endsWithS ? '' : 's'} turn`
+})
+
+const tagColor = computed(() => {
+  return props.currentPlayerMarker === 0 ? 'info' : 'danger'
+})
+
+const emit = defineEmits(['win'])
 
 function deleteFirstPlayerMoves(numberOfMovements) {
   for (let i = 0; i < numberOfMovements; i++) {
-    cells.value[playsHistory.value[currentPlayer.value][0]] = {
-      ...cells.value[playsHistory.value[currentPlayer.value][0]],
+    cells.value[playsHistory.value[props.currentPlayerMarker][0]] = {
+      ...cells.value[playsHistory.value[props.currentPlayerMarker][0]],
       active: false
     }
-    playsHistory.value[currentPlayer.value].shift()
+    playsHistory.value[props.currentPlayerMarker].shift()
   }
 }
 
@@ -61,26 +64,31 @@ function handleCellClick(cellIndex) {
 
   if (clickedCell.lastTouched !== null && clickedCell.active) return
 
-  cells.value[cellIndex] = { lastTouched: currentPlayer.value, active: true }
+  cells.value[cellIndex] = { lastTouched: props.currentPlayerMarker, active: true }
 
   if (didWin()) {
-    emit('win', currentPlayer.value)
+    emit('win', props.currentPlayerMarker)
     return
   }
 
-  if (playsHistory.value[currentPlayer.value].length === 6 - gameConfig.cellsToReset) {
+  if (playsHistory.value[props.currentPlayerMarker].length === 6 - gameConfig.cellsToReset) {
     deleteFirstPlayerMoves(gameConfig.cellsToReset)
   }
 
-  playsHistory.value[currentPlayer.value].push(cellIndex)
-  currentPlayer.value = currentPlayer.value ? PLAYER_1 : PLAYER_2
+  playsHistory.value[props.currentPlayerMarker].push(cellIndex)
+  const [oponentId] = Object.entries(props.players).find(
+    ([id]) => String(id) !== String(currentPlayer.value)
+  )
+
+  currentPlayer.value = oponentId
 }
 
 function didWin() {
   for (const combination of WINNING_COMBINATIONS) {
     const won = combination.every((cellIndex) => {
       return (
-        cells.value[cellIndex].active && cells.value[cellIndex].lastTouched === currentPlayer.value
+        cells.value[cellIndex].active &&
+        cells.value[cellIndex].lastTouched === props.currentPlayerMarker
       )
     })
 
@@ -94,7 +102,7 @@ function didWin() {
 <template>
   <div class="game">
     <div class="turn-tag-container">
-      <Tag v-if="turnTag" severity="contrast" :value="turnTag" />
+      <Tag v-if="turnTag" :severity="tagColor" :value="turnTag" />
     </div>
 
     <div class="avatars">

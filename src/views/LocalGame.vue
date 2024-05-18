@@ -7,10 +7,7 @@ import PlayAgainModal from '@/components/Modal/PlayAgain.vue'
 import Layout from '@/layout/Index.vue'
 import AbandonWrapper from '@/components/AbandonWrapper.vue'
 
-const { cells, playsHistory, currentPlayer, resetGame } = useGameState(true)
-const router = useRouter()
-
-const players = ref({
+const PLAYERS_DATA = {
   0: {
     name: 'X',
     marker: 0,
@@ -21,14 +18,25 @@ const players = ref({
     marker: 1,
     wins: 0
   }
-})
+}
+
+const {
+  cells,
+  playsHistory,
+  currentPlayer,
+  resetGame,
+  lastWinnerId,
+  players,
+  currentPlayerMarker
+} = useGameState(PLAYERS_DATA, true)
+const router = useRouter()
+
 const showPlayAgain = ref(false)
-const winner = ref()
 
 async function handleWin(winnerMarker) {
   players.value[winnerMarker].wins++
   showPlayAgain.value = true
-  winner.value = winnerMarker
+  lastWinnerId.value = winnerMarker
 }
 
 function handlePlayAgain(wantsToPlayAgain) {
@@ -51,12 +59,13 @@ function handlePlayAgain(wantsToPlayAgain) {
         v-model:playsHistory="playsHistory"
         v-model:currentPlayer="currentPlayer"
         :players
+        :current-player-marker="currentPlayerMarker"
         @win="handleWin"
       />
 
       <PlayAgainModal
         :visible="showPlayAgain"
-        :winner
+        :winner="players[lastWinnerId]?.name"
         @yes="handlePlayAgain(true)"
         @no="handlePlayAgain(false)"
       />
