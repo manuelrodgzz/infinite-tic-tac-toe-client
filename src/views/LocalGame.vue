@@ -25,18 +25,8 @@ const players = ref({
 const showPlayAgain = ref(false)
 const winner = ref()
 
-function handleStateUpdate(newState, winnerMarker) {
-  playsHistory.value = newState.playsHistory ?? playsHistory.value
-  cells.value = newState.cells ?? cells.value
-  currentPlayer.value = newState.currentPlayer ?? currentPlayer.value
-
-  if (winnerMarker !== undefined) {
-    players.value[winnerMarker].wins++
-  }
-}
-
-async function handleWin(newState, winnerMarker) {
-  handleStateUpdate(newState, winnerMarker)
+async function handleWin(winnerMarker) {
+  players.value[winnerMarker].wins++
   showPlayAgain.value = true
   winner.value = winnerMarker
 }
@@ -57,11 +47,10 @@ function handlePlayAgain(wantsToPlayAgain) {
   <Layout :show-nav="false">
     <AbandonWrapper to="/">
       <TicTacToe
-        :cells
-        :playsHistory
-        :currentPlayer
+        v-model:cells="cells"
+        v-model:playsHistory="playsHistory"
+        v-model:currentPlayer="currentPlayer"
         :players
-        @state-update="handleStateUpdate"
         @win="handleWin"
       />
 

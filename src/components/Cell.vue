@@ -2,10 +2,13 @@
 import { watch, reactive } from 'vue'
 import gameConfig from 'root/gameConfig.json'
 
+const isDev = import.meta.env.DEV
+
 const props = defineProps({
   lastTouched: Number,
   active: Boolean,
-  enabled: Boolean
+  enabled: Boolean,
+  cellIndex: Number
 })
 
 const spanClasses = reactive(getClassesFromProps(props))
@@ -42,12 +45,18 @@ watch(props, (newProps) => {
 
 <template>
   <div class="cell" :class="{ disabled: !enabled }">
-    <span :class="spanClasses" :style="{ animationDuration: gameConfig.animationDuration }"> </span>
+    <span v-if="isDev" class="dev-index">{{ cellIndex }}</span>
+    <span
+      class="icon"
+      :class="spanClasses"
+      :style="{ animationDuration: gameConfig.animationDuration }"
+    ></span>
   </div>
 </template>
 
 <style scoped>
 .cell {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -63,7 +72,7 @@ watch(props, (newProps) => {
   cursor: initial;
 }
 
-.cell span {
+.cell .icon {
   min-width: 100%;
   min-height: 100%;
   background-repeat: no-repeat;
@@ -73,11 +82,11 @@ watch(props, (newProps) => {
   opacity: 0;
 }
 
-span.fade-out {
+.icon.fade-out {
   opacity: 0;
 }
 
-span.fade-in {
+.icon.fade-in {
   opacity: 1;
 }
 
@@ -87,5 +96,11 @@ span.fade-in {
 
 .circle {
   background: url(/src/assets/circle.svg);
+}
+
+.dev-index {
+  position: absolute;
+  left: 50%;
+  top: 50%;
 }
 </style>

@@ -1,14 +1,11 @@
 <script setup>
-import { toRefs, computed } from 'vue'
+import { computed, defineModel } from 'vue'
 import Cell from './Cell.vue'
 import gameConfig from 'root/gameConfig.json'
 import Avatar from './Avatar.vue'
 import Tag from 'primevue/tag'
 
 const props = defineProps({
-  currentPlayer: Number,
-  playsHistory: Array,
-  cells: Array,
   enabled: {
     type: Boolean,
     default: true
@@ -18,6 +15,10 @@ const props = defineProps({
     required: true
   }
 })
+
+const currentPlayer = defineModel('currentPlayer', { required: true })
+const playsHistory = defineModel('playsHistory', { required: true })
+const cells = defineModel('cells', { required: true })
 
 const turnTag = computed(() => {
   const playerInTurn = Object.values(props.players).find(
@@ -30,9 +31,7 @@ const turnTag = computed(() => {
   return `${playerInTurn.name}'${endsWithS ? '' : 's'} turn`
 })
 
-const { cells, playsHistory, currentPlayer } = toRefs(props)
-
-const emit = defineEmits(['stateUpdate', 'win'])
+const emit = defineEmits(['win'])
 
 const WINNING_COMBINATIONS = [
   [0, 1, 2],
@@ -47,62 +46,41 @@ const WINNING_COMBINATIONS = [
 const PLAYER_1 = 0
 const PLAYER_2 = 1
 
-function deleteFirstPlayerMoves(numberOfMovements, playsHistory, cells) {
-  const cellsCopy = [...cells]
-  const playsHistoryCopy = [...playsHistory]
+function deleteFirstPlayerMoves(numberOfMovements) {
   for (let i = 0; i < numberOfMovements; i++) {
-    cellsCopy[playsHistory[currentPlayer.value][0]] = {
-      ...cellsCopy[playsHistory[currentPlayer.value][0]],
+    cells.value[playsHistory.value[currentPlayer.value][0]] = {
+      ...cells.value[playsHistory.value[currentPlayer.value][0]],
       active: false
     }
-    playsHistoryCopy[currentPlayer.value].shift()
-  }
-
-  return {
-    cellsCopy,
-    playsHistoryCopy
+    playsHistory.value[currentPlayer.value].shift()
   }
 }
 
 function handleCellClick(cellIndex) {
-  let cellsCopy = [...cells.value]
-  let playsHistoryCopy = [...playsHistory.value]
   const clickedCell = cells.value[cellIndex]
 
   if (clickedCell.lastTouched !== null && clickedCell.active) return
 
-  cellsCopy[cellIndex] = { lastTouched: currentPlayer.value, active: true }
+  cells.value[cellIndex] = { lastTouched: currentPlayer.value, active: true }
 
-  if (didWin(cellsCopy)) {
-    emit('win', { cells: cellsCopy, playsHistory: playsHistoryCopy }, currentPlayer.value)
+  if (didWin()) {
+    emit('win', currentPlayer.value)
     return
   }
 
-  if (playsHistoryCopy[currentPlayer.value].length === 6 - gameConfig.cellsToReset) {
-    const updatedCellsAndHistory = deleteFirstPlayerMoves(
-      gameConfig.cellsToReset,
-      playsHistoryCopy,
-      cellsCopy
-    )
-
-    cellsCopy = updatedCellsAndHistory.cellsCopy
-    playsHistoryCopy = updatedCellsAndHistory.playsHistoryCopy
+  if (playsHistory.value[currentPlayer.value].length === 6 - gameConfig.cellsToReset) {
+    deleteFirstPlayerMoves(gameConfig.cellsToReset)
   }
 
-  playsHistoryCopy[currentPlayer.value].push(cellIndex)
-  emit('stateUpdate', {
-    cells: cellsCopy,
-    playsHistory: playsHistoryCopy,
-    currentPlayer: currentPlayer.value ? PLAYER_1 : PLAYER_2
-  })
+  playsHistory.value[currentPlayer.value].push(cellIndex)
+  currentPlayer.value = currentPlayer.value ? PLAYER_1 : PLAYER_2
 }
 
-function didWin(updatedCells) {
+function didWin() {
   for (const combination of WINNING_COMBINATIONS) {
     const won = combination.every((cellIndex) => {
       return (
-        updatedCells[cellIndex].active &&
-        updatedCells[cellIndex].lastTouched === currentPlayer.value
+        cells.value[cellIndex].active && cells.value[cellIndex].lastTouched === currentPlayer.value
       )
     })
 
@@ -137,6 +115,7 @@ function didWin(updatedCells) {
         v-bind="cell"
         :key="`cell-${cellIndex}`"
         :enabled
+        :cell-index="cellIndex"
         @click="enabled && handleCellClick(cellIndex)"
       />
     </div>

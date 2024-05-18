@@ -92,6 +92,12 @@ watch(playersArr, (newValue, oldValue) => {
   }
 })
 
+watch(currentPlayer, (newVal, prev) => {
+  if (newVal !== prev) {
+    handleStateUpdate()
+  }
+})
+
 function updateMatchState(updatedMatch) {
   cells.value = updatedMatch.cells
   playsHistory.value = updatedMatch.playsHistory
@@ -99,12 +105,20 @@ function updateMatchState(updatedMatch) {
   players.value = updatedMatch.players
 }
 
-function handleStateUpdate(matchUpdates) {
-  Socket.instance.emit('match:play', matchId, matchUpdates)
+function getEmitableGameState() {
+  return {
+    cells: cells.value,
+    playsHistory: playsHistory.value,
+    currentPlayer: currentPlayer.value
+  }
 }
 
-function handleWin(matchUpdates) {
-  Socket.instance.emit('match:win', matchId, matchUpdates, playerId)
+function handleStateUpdate() {
+  Socket.instance.emit('match:play', matchId, getEmitableGameState())
+}
+
+function handleWin() {
+  Socket.instance.emit('match:win', matchId, getEmitableGameState(), playerId)
 }
 
 function matchDisconnect() {
@@ -152,7 +166,9 @@ Socket.instance
     }
   })
 
-Socket.instance.on('match:update', updateMatchState)
+Socket.instance.on('match:update', (updates) => {
+  updateMatchState(updates)
+})
 
 Socket.instance.on('match:end', async (updatedMatch, winner) => {
   matchWinner.value = winner.name
@@ -175,11 +191,10 @@ Socket.instance.on('match:exit', () => {
       <TicTacToe
         v-if="showTicTacToe"
         :enabled="currentPlayer === players[playerId].marker"
-        :cells
-        :playsHistory
-        :currentPlayer
+        v-model:cells="cells"
+        v-model:plays-history="playsHistory"
+        v-model:current-player="currentPlayer"
         :players
-        @state-update="handleStateUpdate"
         @win="handleWin"
       />
       <WaitingForResponse
